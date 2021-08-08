@@ -4,7 +4,7 @@
   * [Administration](#administration)
   * [Federation between instances](#federation-between-instances)
   * [User relationships](#user-relationships)
-  * [Posts visibility (just a collection of thoughts; further discussion required)](#posts-visibility--just-a-collection-of-thoughts--further-discussion-required-)
+  * [Posts visibility (just a collection of thoughts; further discussion required)](#posts-visibility-just-a-collection-of-thoughts-further-discussion-required-)
   * [Timelines](#timelines)
     + [Community](#community)
     + [Friends](#friends)
@@ -13,6 +13,7 @@
     + [Untagged](#untagged)
   * [Posts auto-removal](#posts-auto-removal)
   * [Handling username and userpic changes](#handling-username-and-userpic-changes)
+  * [Blocks federation](#blocks-federation)
   * [Additional features](#additional-features)
 - [Technical and privacy considerations](#technical-and-privacy-considerations)
   * [Storage](#storage)
@@ -28,11 +29,11 @@
       - [Execution time](#execution-time)
       - [Bandwidth](#bandwidth)
       - [Table Storage operations](#table-storage-operations)
-      - [Table storage, blob storage](#table-storage--blob-storage)
+      - [Table storage, blob storage](#table-storage-blob-storage)
     + [DB structure](#db-structure)
     + [Public pages](#public-pages)
     + [Technical tools](#technical-tools)
-    + [Management UI, security](#management-ui--security)
+    + [Management UI, security](#management-ui-security)
 
 ## Vision
 
@@ -91,6 +92,15 @@ Additionally, as a stopgap measure, an user can move a remote quarantined instan
 or remote connected or quarantined instance into "Disconnected".
 This change will affect this user only.
 Ultimately and ideally, an instance-wide decision should be made, and all per-user overrides are supposed to be temporary.
+
+Prior to moving an instance into "disconnected" category, an admin will be displayed
+a number of local users who have this instance added to "Connected",
+and for every kind of a relationship (see below) a number of relationships of that kind that will be severed by making that change.
+(Similar Mastodon issue: https://github.com/mastodon/mastodon/issues/15890)
+
+If some relationships were severed in the process,
+local users will get a notification about all the severed relationships that involved them,
+delivered in the same channel follow requests are delivered.
 
 The "Community" category brings us to timelines (see below).
 
@@ -206,6 +216,29 @@ Additionally, as opposed to mastodon, there is no central user registry with dis
 So probably an user will be able to sign off with a specific person's name or to choose a specific pronouns every time they post, which should be convenient to plural users or to those whose pronouns may change frequently.
 
 _Question: should an user be able to pick an entirely new display name on every post, or does it make sense to limit it to postfixes only (e.g. an "user name" can post a specific post as "user name (fae/faer)" or "user name. -Person Name")? Changing the entire username will probably beneficial to some, but on the other hand it might make their posts less accessible to others, who might have a difficulty recognizing an user. And if that's the point, then maybe these users should register themselves separate accounts for every display name instead (and anyway there is an option of changing one's display name; this question only refers to the ability to modify a display name in the post compose UI)? Thanks to 🐉 for the idea_
+
+### Blocks federation
+
+"Community instances" will notify each other when another instance was moved into "Disconnected" category from any other ("disconnect" event), or into "Connected" or "Community" category from "Quarantine" or "Disconnected" ("connect" event).
+
+When two instances became "Community" with each other, they will exchange current lists of "Connected"+"Community" and "Disconnected" instances.
+
+If a local instance learned that some remote quarantined instance is "Disconnected" by some "Community" instance,
+_and_ that remote instance is not added to any user-specific "Connected" list on local instance,
+_and_ no users from that remote instance are in any relationship with users from local instance,
+then it is automatically moved to "Disconnected" on local instance.
+If such a remote instance is "Connected" but everything else holds, then it is automatically moved to "Quarantine".
+Otherwise it is added to review queue in admin UI.
+
+Similarly, if a local instance learned that some remote quarantined instance is "Connected" (or "Community") by some "Community" instance,
+_and_ that remote instance is not added to any user-specific "Disconnected" list on local instance,
+then it is automatically moved to "Connected" on local instance.
+Otherwise it is added to review queue in admin UI.
+
+TL;DR: If local instance doesn't know much about some remote instance, it will use federated blocklists and allowlists.
+If it knows enough about some remote instance, it will not federate/defederate automatically but instead add it to admin review queue.
+
+Additionally, every instance should probably make lists of "Connected"+"Community" and "Disconnected" public.
 
 ### Additional features
 
