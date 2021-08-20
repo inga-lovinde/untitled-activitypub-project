@@ -304,9 +304,15 @@ Such a client would have to store a day worth of posts in order to build a diges
 
 One could also implement something similar to the Mastodon Web UI or Pleroma-FE.
 
-However, such a client would have to store a content of the entire timeline in order to display it, because activitypub server does not store posts coming from the other instances and does not support client fetches.
+However, such a client would have to run on a server (not just be a static single-page app) and store a content of the entire timeline in its database in order to display it, because activitypub server does not store posts coming from the other instances and does not support client fetches.
 
 Maybe such a client could store a content of the entire timeline and expose Mastodon API, so that the existing frontends (Mastodon Web UI, Pleroma-FE, Pinafore, Sengi, Tusky, etc) would be able to run on top of it.
+
+#### Phone app
+
+One could also implement something similar to Tusky.
+
+However, such a client would have to store a content of the entire timeline locally in order to display it, because activitypub server does not store posts coming from the other instances and does not support client fetches.
 
 #### Pitfalls
 
